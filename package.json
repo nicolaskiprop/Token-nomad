@@ -1,9 +1,12 @@
 {
-"scripts":{
-"start":"ts-node /src/index.ts",
-
-}
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
   "devDependencies": {
     "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "ts-node": "^10.9.1"
   }
 }
+

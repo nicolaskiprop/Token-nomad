@@ -1,90 +1,77 @@
 import axios from "axios";
+import { opts } from "../utils/common";
 
-
-interface tokenSymbol {
-    lpAddress:string
-}
-type tokenData = tokenSymbol[]
-
-export const fetchHotLiquidityPools = async() => {
+export const fetchTokens = async () => {
     try {
         const { data } = await axios({
-            method:'get',
-            url:'https://eigenphi.io/api/v2/arbitrage/stat/lp/hotLp/?chain=ethereum&pageSize=5&period=7&sortBy=volume'
+            url: "https://eigenphi.io/api/v1/arbitrage/stat/token/hotToken/",
+            params: {
+                chain: "ethereum",
+                pageSize: 10,
+                period: 7,
+                sortBy: "tv",
+            },
         })
-        const hotPools = data.result
-    
-        console.log(hotPools);
-        const dataObtained = []
 
-        for (let i = 0; i< hotPools.data.length; i++){
-            for (let j = i + 1; j < hotPools.data.length; j++ ){
-            const pool = hotPools.data[i]
-            const {tradingVolume, changeRate, percentage, lpAddress} = pool
-            // console.log({
-            //     tradingVolume,
-            //     changeRate,
-            //     percentage,
-            //     lpAddress
-            // });
-            dataObtained.push({lpAddress})
-        }
-           continue 
-        }
-        // console.log(dataObtained);
-        
-        return dataObtained
-         
+        // console.log(data)
+        return data.result
     } catch (error) {
-        console.log(`error :${error}`);
-        
+        console.log(error);
+        return []
     }
 }
 
-// export const permuteData = async(hotPools : tokenData) => {
+// permutations
+const permutations = (_list: any, _maxLength: number) => {
+    // empty list has one permutation
+    if (_maxLength == 0) {
+        return [[]]
+    }
+    let result: any = [];
 
-//     let counter = 0
-//     const length = Object.entries(hotPools[2]).length
-//     console.log("len", length);
-    
-    
-    // const symbolCombination:tokenData[] =[]
+    for (let i = 0; i < _list.length; i++) {
+        let copy = Object.create(_list);
+        // cut one element from list
+        let head = copy.splice(i, 1);
 
-    // while(counter < length) {
+        let rest = permutations(copy, _maxLength - 1);
+
+        // add head to each permutation of rest of list
+        for (let j = 0; j < rest.length; j++) {
+            let next: any = head.concat(rest[j])
+            result.push(next);
+        }
+    }
+    return result;
+}
+
+export const generatePaths = async (opts: {
+    maxLength: number;
+    buildEigenphiUrl: string
+}) => {
+    try {
+        // get record form eigrnphi token api
+        const { data } = await axios.get(opts.buildEigenphiUrl)
+        const tokens = data.result;
+        const paths = permutations(tokens, opts.maxLength)
+        console.log('paths', paths);
+
+        return paths.map((_paths: any) => {
+            let newPath = _paths.map((_pa: any) => {
+                return { 
+                    address: _pa.address,
+                    symbol: _pa.symbol
+                }
+            })
+            let p = [...newPath, newPath[0]];
+            return p
+        })
         
-    //     for (let i = 0; i < length; i++){
-    //         for (let j = i + 1; j < length; j++) {
-    //             const token: tokenData | undefined = symbolCombination[i];
-    //             // if not token symbol, add new token to token combination 
-    //             if (!token) {
-    //                 symbolCombination.push([hotPools[i], hotPools[j]])
-    //             }
-    //             // if token, update token combination and append first token at the end
-    //             if (token && token.length < 4){
-    //                 symbolCombination[i].push(hotPools[j], hotPools[i])
-    //             }
-    //             continue
-                
-    //         }
-    //         // swap array values
-    //         if (i > 0 && i < length) {
-    //             const nextToken = hotPools[i]
-    //             const firstToken = hotPools[0]
-    //             hotPools[0] = nextToken
-    //             hotPools[i] = firstToken
-    //         }
-         
-            
-    //     }
-    //     counter ++
-    // }
-    
-    // console.log(symbolCombination) 
-    // return symbolCombination
-
-
-
-
-// }
+    } catch (error : any) {
+       return {
+        error: `generatePaths : Error = > ${error}`
+       }
+    }
+}
 
 

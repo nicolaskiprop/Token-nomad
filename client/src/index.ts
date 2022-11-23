@@ -1,8 +1,11 @@
-import { fetchHotLiquidityPools} from "./Tokens/tokens";
+import {  fetchTokens, generatePaths } from "./Tokens/tokens";
+import { opts } from "./utils/common";
 
 const main = async() =>{
 console.log('***********Starting the arbitrage bot******************');
-const hotPools = await fetchHotLiquidityPools()
-// await permuteData(hotPools)
+   const data =  await fetchTokens()
+   const combined = await generatePaths(opts)
+   console.log(combined);
+   
 }
 main()
